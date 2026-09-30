@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (!class_exists('Helper')) {
+            class_alias(\App\Helpers\Helpers::class, 'Helper');
+        }
     }
 }
