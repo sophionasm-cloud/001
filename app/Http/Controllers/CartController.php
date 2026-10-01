@@ -2,54 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
 use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 
-class CartController extends Controller
+class CartController
 {
-    public function __construct()
+    public function view(CartService $cart)
     {
-        $this->middleware('auth');
+        return view('cart.index', [
+            'items' => $cart->content(),
+            'total' => $cart->total(),
+        ]);
     }
 
-    public function index()
+    public function add(Product $product, Request $request, CartService $cart)
     {
-        $cart = auth()->user()->cart ?? new Cart();
-        $items = $cart->items()->with('product')->get();
-        $total = $items->sum(fn($item) => $item->product->selling_price * $item->quantity);
-        return view('cart.index', compact('items', 'total'));
+        $quantity = (int) $request->input('quantity', 1);
+        $cart->add($product, $quantity);
+
+        return redirect()->route('cart.view')
+            ->with('success', 'Product added to cart');
     }
 
-    public function add(Request $request)
+    public function update(Request $request, CartService $cart)
     {
-        $product = Product::findOrFail($request->product_id);
-        if ($product->stock < $request->quantity) {
-            return back()->with('error', 'Not enough stock');
+        if ($request->has('quantities') && is_array($request->quantities)) {
+            foreach ($request->quantities as $rowId => $qty) {
+                $cart->update($rowId, (int) $qty);
+            }
         }
-        $cart = auth()->user()->cart ?? Cart::create(['user_id' => auth()->id()]);
-        $cartItem = $cart->items()->where('product_id', $product->id)->first();
-        if ($cartItem) {
-            $cartItem->update(['quantity' => $cartItem->quantity + $request->quantity]);
-        } else {
-            $cart->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $request->quantity,
-            ]);
-        }
-        return back()->with('success', 'Product added to cart');
+
+        return redirect()->route('cart.view')
+            ->with('success', 'Cart updated');
     }
 
-    public function update(Request $request, $itemId)
+    public function remove(Request $request, CartService $cart)
     {
-        $item = auth()->user()->cart->items()->findOrFail($itemId);
-        $item->update(['quantity' => $request->quantity]);
-        return back()->with('success', 'Cart updated');
-    }
+        $cart->remove($request->input('item_id'));
 
-    public function remove($itemId)
-    {
-        auth()->user()->cart->items()->findOrFail($itemId)->delete();
-        return back()->with('success', 'Item removed from cart');
+        return redirect()->route('cart.view')
+            ->with('success', 'Item removed');
     }
 }
