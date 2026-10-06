@@ -13,4 +13,14 @@ Route::middleware('auth')->group(function () {
         $cart = $user->cart;
         return view('customer.dashboard', compact('user', 'orders', 'cart'));
     })->name('dashboard');
+
+    Route::get('/orders', function () {
+        $user = auth()->user();
+        $query = $user->orders()->latest();
+        if (request('status') && request('status') !== 'all') {
+            $query->where('status', request('status'));
+        }
+        $orders = $query->paginate(10);
+        return view('orders.index', compact('orders'));
+    })->name('orders.index');
 });

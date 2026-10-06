@@ -30,7 +30,7 @@ class CartService
                 'id' => $product->id,
                 'name' => $product->name,
                 'qty' => $quantity,
-                'price' => (float) $product->price,
+                'price' => (float) ($product->selling_price ?? $product->price ?? 0),
                 'options' => [
                     'vendor_id' => $product->vendor_id ?? null,
                 ],
