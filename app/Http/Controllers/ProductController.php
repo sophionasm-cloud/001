@@ -15,9 +15,11 @@ class ProductController extends Controller
         if ($request->category) {
             $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
         }
-        if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
+               if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
                   ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
         }
         if ($request->min_price) {
             $query->where('selling_price', '>=', $request->min_price);

@@ -17,6 +17,6 @@ Route::middleware(['auth', 'role:Super Admin'])->group(function () {
     Route::post('/vendors/{vendor}/reject', [AdminVendorController::class, 'reject'])->name('vendors.reject');
     Route::post('/vendors/{vendor}/suspend', [AdminVendorController::class, 'suspend'])->name('vendors.suspend');
     Route::get('/vendors', [AdminVendorController::class, 'list'])->name('vendors.list');
-    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update', 'destroy']);
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
 });

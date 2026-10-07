@@ -29,3 +29,16 @@ Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 Route::get('/register', fn() => view('auth.register'))->name('register');
 Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.post');
+
+// Shortcuts that views link to (previously 404)
+Route::middleware('auth')->group(function () {
+    Route::redirect('/home', '/customer/dashboard');
+    Route::redirect('/orders', '/customer/orders');
+    Route::redirect('/profile', '/customer/dashboard')->name('profile.show');
+});
+Route::redirect('/wishlist', '/products');
+Route::get('/orders/{order}', function (\App\Models\Order $order) {
+    abort_unless($order->user_id === auth()->id(), 404);
+    $order->load('items.product');
+    return view('orders.show', compact('order'));
+})->name('orders.show');

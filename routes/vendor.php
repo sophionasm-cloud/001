@@ -15,24 +15,23 @@ Route::get('/register', function () {
 
 Route::post('/register', function (Illuminate\Http\Request $request) {
     $validated = $request->validate([
-        'store_name' => 'required|string|max:255',
+        'store_name'  => 'required|string|max:255',
         'description' => 'nullable|string',
-        'user_id' => 'required|exists:users,id',
     ]);
 
-    $vendor = \App\Models\Vendor::create([
-        'user_id' => auth()->id(),
-        'store_name' => $validated['store_name'],
-        'description' => $validated['description'] ?? null,
+    \App\Models\Vendor::create([
+        'user_id'         => auth()->id(),
+        'store_name'      => $validated['store_name'],
+        'description'     => $validated['description'] ?? null,
         'approval_status' => 'pending',
     ]);
 
     return redirect()->route('vendor.dashboard')->with('success', 'Vendor account created! Waiting for approval.');
-})->name('register.submit');
+})->middleware('auth')->name('register.submit');
 
 Route::middleware(['auth', 'role:Vendor'])->group(function () {
     Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('/products', VendorProductController::class);
+    Route::resource('products', VendorProductController::class);
     Route::get('/orders', [VendorOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [VendorOrderController::class, 'show'])->name('orders.show');
     Route::put('/orders/{order}/status', [VendorOrderController::class, 'updateStatus'])->name('orders.updateStatus');

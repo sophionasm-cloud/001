@@ -55,4 +55,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(Wishlist::class);
     }
+        public function hasRole(string $name): bool
+    {
+        return $this->role?->name === $name;
+    }
+
+    /** Where this user lands after login/registration. */
+    public function homeRoute(): string
+    {
+        return match ($this->role?->name) {
+            'Super Admin' => route('admin.dashboard'),
+            'Vendor'      => route('vendor.dashboard'),
+            default       => route('customer.dashboard'),
+        };
+    }
 }

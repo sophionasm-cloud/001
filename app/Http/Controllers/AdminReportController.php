@@ -16,16 +16,15 @@ class AdminReportController extends Controller
 
     public function index()
     {
-        $monthlySales = Order::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('YEAR(created_at) as year'),
-            DB::raw('SUM(total) as total')
-        )
-        ->groupBy('year', 'month')
-        ->orderBy('year', 'desc')
-        ->orderBy('month', 'desc')
-        ->take(12)
-        ->get();
+        $monthlySales = Order::latest()->get()
+            ->groupBy(fn ($o) => $o->created_at->format('Y-m'))
+            ->map(fn ($g, $key) => (object) [
+                'year'  => (int) substr($key, 0, 4),
+                'month' => (int) substr($key, 5, 2),
+                'total' => $g->sum('total'),
+            ])
+            ->values()
+            ->take(12);
 
         $topVendors = DB::table('vendors')
             ->join('order_items', 'vendors.id', '=', 'order_items.vendor_id')
