@@ -56,6 +56,11 @@ class RegisterController extends Controller
         ]);
     }
 
+    protected function registered(\Illuminate\Http\Request $request, $user)
+    {
+        return redirect()->intended($user->homeRoute());
+    }
+
     /**
      * Create a new user instance after a valid registration.
      *
@@ -64,11 +69,26 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $isVendor = ($data['account_type'] ?? '') === 'vendor';
+        $roleName = $isVendor ? 'Vendor' : 'Customer';
+        $roleId = Role::where('name', $roleName)->value('id') ?? ($isVendor ? 2 : 3);
+
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role_id' => Role::where('name', 'Customer')->value('id'),
+            'role_id' => $roleId,
         ]);
+
+        if ($isVendor) {
+            \App\Models\Vendor::create([
+                'user_id' => $user->id,
+                'store_name' => !empty($data['store_name']) ? $data['store_name'] : $data['name'] . ' Store',
+                'description' => 'Vendor Store on MultiVendor Platform',
+                'approval_status' => 'active',
+            ]);
+        }
+
+        return $user;
     }
 }

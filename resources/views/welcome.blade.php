@@ -37,7 +37,7 @@
   <div class="d-flex align-items-center gap-3">
     <a href="{{ route('products.index') }}" class="text-body text-decoration-none">Shop</a>
     @auth
-      <a href="{{ url('/customer/dashboard') }}" class="btn btn-primary btn-sm">My Account</a>
+      <a href="{{ auth()->user()->homeRoute() }}" class="btn btn-primary btn-sm">My Dashboard</a>
     @else
       <a href="{{ url('/login') }}" class="btn btn-outline-primary btn-sm">Login</a>
       <a href="{{ url('/register') }}" class="btn btn-primary btn-sm">Sign Up</a>

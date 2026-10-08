@@ -4,9 +4,7 @@
 
 @section('page-style')
 <style>
-  .checkout-steps { counter-reset: step; }
   .checkout-step { display: flex; align-items: flex-start; gap: 1rem; padding-bottom: 1.5rem; }
-  .checkout-step:not(:last-child) { border-left: 2px solid var(--bs-border-color); margin-left: 20px; }
   .step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
   .order-item-img { width: 56px; height: 56px; object-fit: cover; border-radius: .375rem; }
   .payment-method-card { border: 2px solid var(--bs-border-color); border-radius: .5rem; cursor: pointer; transition: border-color .2s, background .2s; }
@@ -16,14 +14,34 @@
 
 @section('content')
 
+@php
+  // Normalise every cart item (works for session arrays AND Eloquent-style objects)
+  $rows = collect($cartItems ?? [])->map(function ($item) {
+      return [
+          'name'  => data_get($item, 'name') ?? data_get($item, 'product.name', 'Product'),
+          'price' => (float) (data_get($item, 'price') ?? data_get($item, 'product.selling_price', 0)),
+          'qty'   => (int) (data_get($item, 'quantity') ?? data_get($item, 'qty', 1)),
+          'image' => data_get($item, 'image') ?? data_get($item, 'product.image'),
+      ];
+  })->values();
+
+  $subtotal = $rows->sum(fn ($r) => $r['price'] * $r['qty']);
+  $shipping = $subtotal >= 50 ? 0 : 9.99;
+  $tax      = round($subtotal * 0.08, 2);
+  $total    = $subtotal + $shipping + $tax;
+@endphp
+
 {{-- Header --}}
 <div class="mb-5">
   <h4 class="fw-bold mb-1">
-    <img src="{{ Vite::asset('resources/images/svg/payment.svg') }}" style="width:28px;" alt="" class="me-2" />
-    Checkout
+    <i class="ti ti-credit-card me-2"></i>Checkout
   </h4>
   <p class="text-muted mb-0">Complete your purchase securely</p>
 </div>
+
+@if(session('error'))
+  <div class="alert alert-danger mb-4">{{ session('error') }}</div>
+@endif
 
 @if($errors->any())
   <div class="alert alert-danger mb-4">
@@ -46,9 +64,7 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header border-0">
           <div class="d-flex align-items-center gap-3">
-            <div class="step-icon bg-primary text-white">
-              <img src="{{ Vite::asset('resources/images/svg/user-info.svg') }}" style="width:20px;filter:brightness(100);" alt="" />
-            </div>
+            <div class="step-icon bg-primary text-white"><i class="ti ti-user"></i></div>
             <div>
               <h6 class="mb-0 fw-bold">Contact Information</h6>
               <small class="text-muted">Your personal details</small>
@@ -77,8 +93,9 @@
             </div>
             <div class="col-12">
               <label class="form-label">Phone Number</label>
-              <input type="tel" name="phone" class="form-control"
+              <input type="tel" name="phone" class="form-control @error('phone') is-invalid @enderror"
                      value="{{ old('phone') }}" placeholder="+1 (555) 000-0000" />
+              @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
           </div>
         </div>
@@ -88,9 +105,7 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header border-0">
           <div class="d-flex align-items-center gap-3">
-            <div class="step-icon bg-info text-white">
-              <img src="{{ Vite::asset('resources/images/svg/address.svg') }}" style="width:20px;filter:brightness(100);" alt="" />
-            </div>
+            <div class="step-icon bg-info text-white"><i class="ti ti-map-pin"></i></div>
             <div>
               <h6 class="mb-0 fw-bold">Shipping Address</h6>
               <small class="text-muted">Where should we deliver?</small>
@@ -128,7 +143,7 @@
             </div>
             <div class="col-12">
               <label class="form-label">Country <span class="text-danger">*</span></label>
-              <select name="country" class="form-select" required>
+              <select name="country" class="form-select @error('country') is-invalid @enderror" required>
                 <option value="">Select Country</option>
                 <option value="US" {{ old('country') == 'US' ? 'selected' : '' }}>United States</option>
                 <option value="CA" {{ old('country') == 'CA' ? 'selected' : '' }}>Canada</option>
@@ -137,6 +152,7 @@
                 <option value="AE" {{ old('country') == 'AE' ? 'selected' : '' }}>UAE</option>
                 <option value="AU" {{ old('country') == 'AU' ? 'selected' : '' }}>Australia</option>
               </select>
+              @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
           </div>
         </div>
@@ -146,9 +162,7 @@
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header border-0">
           <div class="d-flex align-items-center gap-3">
-            <div class="step-icon bg-success text-white">
-              <img src="{{ Vite::asset('resources/images/svg/Card.svg') }}" style="width:20px;filter:brightness(100);" alt="" />
-            </div>
+            <div class="step-icon bg-success text-white"><i class="ti ti-credit-card"></i></div>
             <div>
               <h6 class="mb-0 fw-bold">Payment Method</h6>
               <small class="text-muted">Choose how you'd like to pay</small>
@@ -160,9 +174,9 @@
 
             <div class="col-sm-6">
               <label class="payment-method-card p-3 d-flex align-items-center gap-3 w-100">
-                <input type="radio" name="payment_method" value="credit_card"
-                       class="d-none" {{ old('payment_method', 'credit_card') == 'credit_card' ? 'checked' : '' }} />
-                <img src="{{ Vite::asset('resources/images/svg/Card.svg') }}" style="width:32px;" alt="Card" />
+                <input type="radio" name="payment_method" value="credit_card" class="d-none"
+                       {{ old('payment_method', 'credit_card') == 'credit_card' ? 'checked' : '' }} />
+                <i class="ti ti-credit-card fs-2"></i>
                 <div>
                   <div class="fw-semibold small">Credit / Debit Card</div>
                   <div class="text-muted" style="font-size:.75rem">Visa, Mastercard, Amex</div>
@@ -172,9 +186,9 @@
 
             <div class="col-sm-6">
               <label class="payment-method-card p-3 d-flex align-items-center gap-3 w-100">
-                <input type="radio" name="payment_method" value="paypal"
-                       class="d-none" {{ old('payment_method') == 'paypal' ? 'checked' : '' }} />
-                <img src="{{ Vite::asset('resources/images/svg/Wallet.svg') }}" style="width:32px;" alt="Wallet" />
+                <input type="radio" name="payment_method" value="paypal" class="d-none"
+                       {{ old('payment_method') == 'paypal' ? 'checked' : '' }} />
+                <i class="ti ti-wallet fs-2"></i>
                 <div>
                   <div class="fw-semibold small">Digital Wallet</div>
                   <div class="text-muted" style="font-size:.75rem">PayPal, Apple Pay, etc.</div>
@@ -184,9 +198,9 @@
 
             <div class="col-sm-6">
               <label class="payment-method-card p-3 d-flex align-items-center gap-3 w-100">
-                <input type="radio" name="payment_method" value="cod"
-                       class="d-none" {{ old('payment_method') == 'cod' ? 'checked' : '' }} />
-                <img src="{{ Vite::asset('resources/images/svg/home.svg') }}" style="width:32px;" alt="COD" />
+                <input type="radio" name="payment_method" value="cod" class="d-none"
+                       {{ old('payment_method') == 'cod' ? 'checked' : '' }} />
+                <i class="ti ti-home fs-2"></i>
                 <div>
                   <div class="fw-semibold small">Cash on Delivery</div>
                   <div class="text-muted" style="font-size:.75rem">Pay when you receive</div>
@@ -196,9 +210,9 @@
 
             <div class="col-sm-6">
               <label class="payment-method-card p-3 d-flex align-items-center gap-3 w-100">
-                <input type="radio" name="payment_method" value="bank"
-                       class="d-none" {{ old('payment_method') == 'bank' ? 'checked' : '' }} />
-                <img src="{{ Vite::asset('resources/images/svg/Diamond.svg') }}" style="width:32px;" alt="Bank" />
+                <input type="radio" name="payment_method" value="bank" class="d-none"
+                       {{ old('payment_method') == 'bank' ? 'checked' : '' }} />
+                <i class="ti ti-building-bank fs-2"></i>
                 <div>
                   <div class="fw-semibold small">Bank Transfer</div>
                   <div class="text-muted" style="font-size:.75rem">Direct bank transfer</div>
@@ -206,27 +220,27 @@
               </label>
             </div>
           </div>
+          @error('payment_method')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
 
-          {{-- Credit card fields (shown conditionally) --}}
+          {{-- Card fields: demo only, never sent to the database --}}
           <div id="card-fields" class="mt-4">
             <div class="row g-3">
               <div class="col-12">
                 <label class="form-label">Card Number</label>
-                <input type="text" name="card_number" class="form-control"
-                       placeholder="1234 5678 9012 3456" maxlength="19" />
+                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="off" />
               </div>
               <div class="col-sm-6">
                 <label class="form-label">Expiry Date</label>
-                <input type="text" name="card_expiry" class="form-control" placeholder="MM / YY" />
+                <input type="text" class="form-control" placeholder="MM / YY" autocomplete="off" />
               </div>
               <div class="col-sm-6">
                 <label class="form-label">CVV</label>
-                <input type="text" name="card_cvv" class="form-control" placeholder="123" maxlength="4" />
+                <input type="text" class="form-control" placeholder="123" maxlength="4" autocomplete="off" />
               </div>
             </div>
+            <small class="text-muted">Demo store: card details are not processed or saved.</small>
           </div>
 
-          {{-- Additional notes --}}
           <div class="mt-4">
             <label class="form-label">Order Notes (optional)</label>
             <textarea name="notes" class="form-control" rows="2"
@@ -239,8 +253,7 @@
         <i class="ti ti-lock me-2"></i>Place Order Securely
       </button>
       <p class="text-center text-muted small mt-2">
-        <img src="{{ Vite::asset('resources/images/svg/Check.svg') }}" style="width:14px;" alt="" class="me-1" />
-        Your personal data will be used to process your order
+        <i class="ti ti-check me-1"></i>Your personal data will be used to process your order
       </p>
     </form>
   </div>
@@ -249,40 +262,32 @@
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm sticky-top" style="top:80px">
       <div class="card-header border-0">
-        <h5 class="fw-bold mb-0">Your Order ({{ $cartItems->count() }} items)</h5>
+        <h5 class="fw-bold mb-0">Your Order ({{ $rows->count() }} items)</h5>
       </div>
       <div class="card-body p-0">
 
-        {{-- Items list --}}
-        @foreach($cartItems as $item)
+        @foreach($rows as $row)
         <div class="d-flex align-items-center gap-3 p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
           <div class="position-relative">
-            @if($item->product->images && count($item->product->images))
-              <img src="{{ asset('storage/' . $item->product->images[0]) }}"
-                   alt="{{ $item->product->name }}" class="order-item-img" />
+            @if($row['image'] && file_exists(public_path('storage/' . $row['image'])))
+              <img src="{{ asset('storage/' . $row['image']) }}" alt="{{ $row['name'] }}" class="order-item-img" />
             @else
               <img src="{{ Vite::asset('resources/images/pages/puma-shoes.jpeg') }}"
-                   alt="{{ $item->product->name }}" class="order-item-img" />
+                   alt="{{ $row['name'] }}" class="order-item-img" />
             @endif
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
-              {{ $item->quantity }}
+              {{ $row['qty'] }}
             </span>
           </div>
           <div class="flex-grow-1">
-            <div class="fw-semibold small">{{ Str::limit($item->product->name, 35) }}</div>
-            <div class="text-muted small">${{ number_format($item->product->price, 2) }} × {{ $item->quantity }}</div>
+            <div class="fw-semibold small">{{ Str::limit($row['name'], 35) }}</div>
+            <div class="text-muted small">${{ number_format($row['price'], 2) }} × {{ $row['qty'] }}</div>
           </div>
-          <div class="fw-bold">${{ number_format($item->product->price * $item->quantity, 2) }}</div>
+          <div class="fw-bold">${{ number_format($row['price'] * $row['qty'], 2) }}</div>
         </div>
         @endforeach
 
         {{-- Totals --}}
-        @php
-          $subtotal = $cartItems->sum(fn($i) => $i->product->price * $i->quantity);
-          $shipping = $subtotal >= 50 ? 0 : 9.99;
-          $tax = $subtotal * 0.08;
-          $total = $subtotal + $shipping + $tax;
-        @endphp
         <div class="p-4 border-top">
           <div class="d-flex justify-content-between text-muted mb-2">
             <span>Subtotal</span><span>${{ number_format($subtotal, 2) }}</span>
@@ -310,17 +315,12 @@
 
 @section('page-script')
 <script>
-  // Show/hide card fields based on payment method
-  document.querySelectorAll('[name="payment_method"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      document.getElementById('card-fields').style.display =
-        this.value === 'credit_card' ? 'block' : 'none';
-    });
-  });
-
-  // Format card number with spaces
-  document.querySelector('[name="card_number"]')?.addEventListener('input', function() {
-    this.value = this.value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
-  });
+  const cardFields = document.getElementById('card-fields');
+  function toggleCard() {
+    const sel = document.querySelector('[name="payment_method"]:checked');
+    cardFields.style.display = (!sel || sel.value === 'credit_card') ? 'block' : 'none';
+  }
+  document.querySelectorAll('[name="payment_method"]').forEach(r => r.addEventListener('change', toggleCard));
+  toggleCard();
 </script>
 @endsection

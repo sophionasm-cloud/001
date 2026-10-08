@@ -41,7 +41,7 @@
       <div class="avatar avatar-lg bg-label-primary rounded mx-auto mb-3">
         <i class="ti ti-shopping-bag ti-lg text-primary"></i>
       </div>
-      <h4 class="fw-bold mb-0">{{ $orders->total() ?? $orders->count() }}</h4>
+      <h4 class="fw-bold mb-0">{{ ($orders instanceof \Illuminate\Pagination\AbstractPaginator) ? $orders->total() : $orders->count() }}</h4>
       <div class="text-muted small">Total Orders</div>
     </div>
   </div>
@@ -51,7 +51,7 @@
         <img src="{{ Vite::asset('resources/images/svg/cart.svg') }}"
              style="width:24px;" alt="Cart" />
       </div>
-      <h4 class="fw-bold mb-0">{{ $cart->items->count() ?? 0 }}</h4>
+      <h4 class="fw-bold mb-0">{{ $cart?->items?->count() ?? 0 }}</h4>
       <div class="text-muted small">Items in Cart</div>
     </div>
   </div>
@@ -145,12 +145,12 @@
           <img src="{{ Vite::asset('resources/images/svg/cart.svg') }}" style="width:18px;" class="me-2" />
           My Cart
         </h6>
-        @if($cart && $cart->items->count())
+        @if($cart?->items && $cart->items->count())
           <span class="badge bg-primary">{{ $cart->items->count() }}</span>
         @endif
       </div>
       <div class="card-body p-0">
-        @if($cart && $cart->items->count())
+        @if($cart?->items && $cart->items->count())
           @foreach($cart->items->take(3) as $item)
           <div class="d-flex align-items-center gap-3 p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
             @if($item->product->images ?? false)

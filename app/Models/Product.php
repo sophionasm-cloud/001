@@ -56,5 +56,10 @@ class Product extends Model
     public function averageRating()
     {
         return $this->reviews()->avg('rating') ?? 0;
+
     }
+    public function getPriceAttribute()
+{
+    return $this->selling_price;
+}
 }

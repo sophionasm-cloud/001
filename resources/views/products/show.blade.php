@@ -256,14 +256,14 @@
     <div class="col-sm-6 col-lg-3">
       <a href="{{ route('products.show', $related->id) }}" class="text-decoration-none">
         <div class="card border-0 shadow-sm h-100">
-          @if($related->images && count($related->images))
-            <img src="{{ asset('storage/' . $related->images[0]) }}" alt="{{ $related->name }}"
-                 class="card-img-top" style="height:160px;object-fit:cover;" />
-          @else
-            <img src="{{ Vite::asset('resources/images/pages/puma-shoes.jpeg') }}"
-                 alt="{{ $related->name }}"
-                 class="card-img-top" style="height:160px;object-fit:cover;" />
-          @endif
+       @if($related->image && file_exists(public_path('storage/' . $related->image)))
+  <img src="{{ asset('storage/' . $related->image) }}" alt="{{ $related->name }}"
+       class="card-img-top" style="height:160px;object-fit:cover;" />
+@else
+  <img src="{{ Vite::asset('resources/images/pages/puma-shoes.jpeg') }}"
+       alt="{{ $related->name }}"
+       class="card-img-top" style="height:160px;object-fit:cover;" />
+@endif
           <div class="card-body p-3">
             <p class="card-title mb-1 fw-semibold text-body small">{{ Str::limit($related->name, 40) }}</p>
             <span class="text-primary fw-bold">${{ number_format($related->price, 2) }}</span>
