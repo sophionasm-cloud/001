@@ -17,8 +17,9 @@ touch /var/www/html/.env
 APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
 export APP_URL
 export ASSET_URL="$APP_URL"
+export APP_DEBUG="${APP_DEBUG:-true}"
 
-for VAR in APP_KEY APP_URL ASSET_URL; do
+for VAR in APP_KEY APP_URL ASSET_URL APP_DEBUG; do
     VAL="${!VAR}"
     if grep -q "^${VAR}=" /var/www/html/.env; then
         sed -i "s|^${VAR}=.*|${VAR}=${VAL}|" /var/www/html/.env

@@ -8,6 +8,8 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: APP_DEBUG
+        value: "true"
       - key: APP_URL
         value: https://multivendor-store-kykr.onrender.com
       - key: ASSET_URL
@@ -27,4 +29,4 @@ services:
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
-        value: info
+        value: debug
