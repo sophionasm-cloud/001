@@ -17,7 +17,7 @@ touch /var/www/html/.env
 APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
 export APP_URL
 export ASSET_URL="$APP_URL"
-export APP_DEBUG="${APP_DEBUG:-true}"
+export APP_DEBUG="${APP_DEBUG:-false}"
 
 for VAR in APP_KEY APP_URL ASSET_URL APP_DEBUG; do
     VAL="${!VAR}"
