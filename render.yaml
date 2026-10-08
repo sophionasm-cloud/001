@@ -8,8 +8,10 @@ services:
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_DEBUG
-        value: "false"
+      - key: APP_URL
+        value: https://multivendor-store-kykr.onrender.com
+      - key: ASSET_URL
+        value: https://multivendor-store-kykr.onrender.com
       - key: APP_KEY
         value: "base64:+RLH70IXwcygyDPZGH0Euo2e4FK8G2WO+Q7QfRjBzxE="
       - key: DB_CONNECTION

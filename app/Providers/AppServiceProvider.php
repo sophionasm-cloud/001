@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https' || str_contains((string)config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         if (!class_exists('Helper')) {
             class_alias(\App\Helpers\Helpers::class, 'Helper');
         }

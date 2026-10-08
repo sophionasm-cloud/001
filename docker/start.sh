@@ -14,11 +14,18 @@ fi
 
 echo "==> Syncing .env file..."
 touch /var/www/html/.env
-if grep -q "^APP_KEY=" /var/www/html/.env; then
-    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|" /var/www/html/.env
-else
-    echo "APP_KEY=${APP_KEY}" >> /var/www/html/.env
-fi
+APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
+export APP_URL
+export ASSET_URL="$APP_URL"
+
+for VAR in APP_KEY APP_URL ASSET_URL; do
+    VAL="${!VAR}"
+    if grep -q "^${VAR}=" /var/www/html/.env; then
+        sed -i "s|^${VAR}=.*|${VAR}=${VAL}|" /var/www/html/.env
+    else
+        echo "${VAR}=${VAL}" >> /var/www/html/.env
+    fi
+done
 
 echo "==> Preparing storage and sqlite database..."
 mkdir -p /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
