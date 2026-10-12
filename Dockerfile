@@ -58,10 +58,17 @@ RUN mkdir -p /var/www/html/public/resources \
     && cp -r /var/www/html/resources/images /var/www/html/public/resources/ 2>/dev/null || true
 
 # Setup SQLite database and storage directories
-RUN mkdir -p /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache \
+RUN mkdir -p /var/www/html/database \
+             /var/www/html/storage/framework/sessions \
+             /var/www/html/storage/framework/views \
+             /var/www/html/storage/framework/cache/data \
+             /var/www/html/storage/logs \
+             /var/www/html/storage/app/public \
+             /var/www/html/bootstrap/cache \
     && touch /var/www/html/database/database.sqlite \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+    && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
+    && chmod 666 /var/www/html/database/database.sqlite
 
 # Copy Nginx config and entrypoint script
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf

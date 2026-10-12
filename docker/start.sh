@@ -14,12 +14,14 @@ fi
 
 echo "==> Syncing .env file..."
 touch /var/www/html/.env
-APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
-export APP_URL
+export APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
 export ASSET_URL="$APP_URL"
 export APP_DEBUG="${APP_DEBUG:-false}"
+export DB_CONNECTION="${DB_CONNECTION:-sqlite}"
+export DB_DATABASE="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
+export SESSION_DRIVER="${SESSION_DRIVER:-file}"
 
-for VAR in APP_KEY APP_URL ASSET_URL APP_DEBUG; do
+for VAR in APP_KEY APP_URL ASSET_URL APP_DEBUG DB_CONNECTION DB_DATABASE SESSION_DRIVER; do
     VAL="${!VAR}"
     if grep -q "^${VAR}=" /var/www/html/.env; then
         sed -i "s|^${VAR}=.*|${VAR}=${VAL}|" /var/www/html/.env
@@ -29,16 +31,26 @@ for VAR in APP_KEY APP_URL ASSET_URL APP_DEBUG; do
 done
 
 echo "==> Preparing storage and sqlite database..."
-mkdir -p /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
+mkdir -p /var/www/html/storage/framework/sessions \
+         /var/www/html/storage/framework/views \
+         /var/www/html/storage/framework/cache/data \
+         /var/www/html/storage/logs \
+         /var/www/html/storage/app/public \
+         /var/www/html/database \
+         /var/www/html/bootstrap/cache
 touch /var/www/html/database/database.sqlite
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 echo "==> Creating storage link..."
 php artisan storage:link || true
 
 echo "==> Running database migrations and seeders..."
-php artisan migrate --force --seed || php artisan migrate --force
+php artisan migrate --force
+php artisan db:seed --force || true
+
+echo "==> Securing directory and sqlite permissions for web server..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod 666 /var/www/html/database/database.sqlite
 
 echo "==> Optimizing caches..."
 php artisan config:clear || true

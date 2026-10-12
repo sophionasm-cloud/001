@@ -9,9 +9,9 @@ class CategorySeeder extends Seeder
 {
     public function run()
     {
-        Category::create(['name' => 'Electronics', 'slug' => 'electronics']);
-        Category::create(['name' => 'Fashion', 'slug' => 'fashion']);
-        Category::create(['name' => 'Books', 'slug' => 'books']);
-        Category::create(['name' => 'Home & Garden', 'slug' => 'home-garden']);
+        Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics']);
+        Category::firstOrCreate(['slug' => 'fashion'], ['name' => 'Fashion']);
+        Category::firstOrCreate(['slug' => 'books'], ['name' => 'Books']);
+        Category::firstOrCreate(['slug' => 'home-garden'], ['name' => 'Home & Garden']);
     }
 }
