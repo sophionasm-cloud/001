@@ -16,7 +16,7 @@ echo "==> Syncing .env file..."
 touch /var/www/html/.env
 export APP_URL="${APP_URL:-https://multivendor-store-kykr.onrender.com}"
 export ASSET_URL="$APP_URL"
-export APP_DEBUG="${APP_DEBUG:-false}"
+export APP_DEBUG="${APP_DEBUG:-true}"
 export DB_CONNECTION="${DB_CONNECTION:-sqlite}"
 export DB_DATABASE="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
 export SESSION_DRIVER="${SESSION_DRIVER:-file}"

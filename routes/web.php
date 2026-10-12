@@ -42,3 +42,47 @@ Route::get('/orders/{order}', function (\App\Models\Order $order) {
     $order->load('items.product');
     return view('orders.show', compact('order'));
 })->name('orders.show');
+
+Route::get('/health-check', function () {
+    $results = [];
+    $paths = [
+        'storage' => storage_path(),
+        'sessions' => storage_path('framework/sessions'),
+        'views' => storage_path('framework/views'),
+        'cache' => storage_path('framework/cache/data'),
+        'database_dir' => database_path(),
+        'database_file' => database_path('database.sqlite'),
+    ];
+    foreach ($paths as $name => $path) {
+        $results['paths'][$name] = [
+            'exists' => file_exists($path),
+            'writable' => is_writable($path),
+        ];
+    }
+
+    try {
+        $results['db_connection'] = config('database.default');
+        $results['users_count'] = \App\Models\User::count();
+        $results['roles_count'] = \App\Models\Role::count();
+        $results['users'] = \App\Models\User::with('role')->get(['id', 'email', 'name', 'role_id']);
+    } catch (\Throwable $e) {
+        $results['db_error'] = $e->getMessage();
+    }
+
+    try {
+        session(['health_test' => 'ok']);
+        session()->save();
+        $results['session_write'] = 'OK';
+    } catch (\Throwable $e) {
+        $results['session_error'] = $e->getMessage();
+    }
+
+    try {
+        cache()->put('health_test', 'ok', 10);
+        $results['cache_write'] = 'OK';
+    } catch (\Throwable $e) {
+        $results['cache_error'] = $e->getMessage();
+    }
+
+    return response()->json($results);
+});
