@@ -13,11 +13,13 @@
     {{-- Left illustration --}}
     <div class="d-none d-lg-flex col-lg-7 p-0">
       <div class="auth-cover-bg auth-cover-bg-color d-flex justify-content-center align-items-center">
-        <img src="{{ Vite::asset('resources/images/pages/auth-v2-login-illustration-bordered-light.png') }}"
-             onerror="this.src='{{ Vite::asset('resources/images/pages/auth-v2-login-illustration-light.png') }}'"
+        <img src="{{ asset('assets/img/pages/auth-v2-login-illustration-bordered-light.png') }}"
+             onerror="this.src='{{ asset('assets/img/illustrations/auth-login-illustration-light.png') }}'"
              alt="Vendor Login"
              class="img-fluid my-auto"
-             style="max-width: 80%" />
+             style="max-width: 80%"
+             data-app-light-img="pages/auth-v2-login-illustration-bordered-light.png"
+             data-app-dark-img="pages/auth-v2-login-illustration-bordered-dark.png" />
       </div>
     </div>
 

@@ -6,7 +6,23 @@
 <aside id="layout-menu" class="layout-menu-horizontal menu-horizontal  menu bg-menu-theme flex-grow-0">
   <div class="{{$containerNav}} d-flex h-100">
     <ul class="menu-inner pb-2 pb-xl-0">
+      @php
+        $currentUserRole = 'guest';
+        if (Auth::check()) {
+            $rName = Auth::user()->role?->name ?? 'Customer';
+            if ($rName === 'Super Admin') {
+                $currentUserRole = 'admin';
+            } elseif ($rName === 'Vendor') {
+                $currentUserRole = 'vendor';
+            } else {
+                $currentUserRole = 'customer';
+            }
+        }
+      @endphp
       @foreach ($menuData[1]->menu as $menu)
+        @if (isset($menu->roles) && !in_array($currentUserRole, (array) $menu->roles))
+          @continue
+        @endif
 
       {{-- active menu method --}}
       @php

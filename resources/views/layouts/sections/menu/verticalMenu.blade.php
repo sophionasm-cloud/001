@@ -23,7 +23,24 @@ $configData = Helper::appClasses();
   <div class="menu-inner-shadow"></div>
 
   <ul class="menu-inner py-1">
+    @php
+      $currentUserRole = 'guest';
+      if (Auth::check()) {
+          $rName = Auth::user()->role?->name ?? 'Customer';
+          if ($rName === 'Super Admin') {
+              $currentUserRole = 'admin';
+          } elseif ($rName === 'Vendor') {
+              $currentUserRole = 'vendor';
+          } else {
+              $currentUserRole = 'customer';
+          }
+      }
+    @endphp
+
     @foreach ($menuData[0]->menu as $menu)
+      @if (isset($menu->roles) && !in_array($currentUserRole, (array) $menu->roles))
+        @continue
+      @endif
 
       {{-- adding active and open class if child is active --}}
 

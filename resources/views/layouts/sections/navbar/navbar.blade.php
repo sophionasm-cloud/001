@@ -402,16 +402,16 @@ $navbarDetached = ($navbarDetached ?? '');
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
               <div class="avatar avatar-online">
-                <img src="{{ Auth::user() ? Auth::user()->profile_photo_url : asset('assets/img/avatars/1.png') }}" alt class="rounded-circle">
+                <img src="{{ Auth::user() ? (Auth::user()->profile_photo_url ?? asset('assets/img/avatars/1.png')) : asset('assets/img/avatars/1.png') }}" alt class="rounded-circle">
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
-                <a class="dropdown-item mt-0" href="{{ Route::has('profile.show') ? route('profile.show') : url('pages/profile-user') }}">
+                <a class="dropdown-item mt-0" href="{{ Auth::check() ? Auth::user()->homeRoute() : route('login') }}">
                   <div class="d-flex align-items-center">
                     <div class="flex-shrink-0 me-2">
                       <div class="avatar avatar-online">
-                        <img src="{{ Auth::user() ? Auth::user()->profile_photo_url : asset('assets/img/avatars/1.png') }}" alt class="rounded-circle">
+                        <img src="{{ Auth::user() ? (Auth::user()->profile_photo_url ?? asset('assets/img/avatars/1.png')) : asset('assets/img/avatars/1.png') }}" alt class="rounded-circle">
                       </div>
                     </div>
                     <div class="flex-grow-1">
@@ -419,10 +419,26 @@ $navbarDetached = ($navbarDetached ?? '');
                         @if (Auth::check())
                           {{ Auth::user()->name }}
                         @else
-                          John Doe
+                          Guest
                         @endif
                       </h6>
-                      <small class="text-muted">Admin</small>
+                      <small class="text-muted">
+                        @if (Auth::check())
+                          @php
+                            $roleName = Auth::user()->role?->name ?? 'User';
+                            if ($roleName === 'Super Admin') {
+                              $displayRole = 'Admin';
+                            } elseif ($roleName === 'Customer') {
+                              $displayRole = 'User';
+                            } else {
+                              $displayRole = $roleName;
+                            }
+                          @endphp
+                          {{ $displayRole }}
+                        @else
+                          Guest
+                        @endif
+                      </small>
                     </div>
                   </div>
                 </a>
@@ -430,28 +446,54 @@ $navbarDetached = ($navbarDetached ?? '');
               <li>
                 <div class="dropdown-divider my-1 mx-n2"></div>
               </li>
-              <li>
-                <a class="dropdown-item" href="{{ Route::has('profile.show') ? route('profile.show') : url('pages/profile-user') }}">
-                  <i class="ti ti-user me-3 ti-md"></i><span class="align-middle">My Profile</span>
-                </a>
-              </li>
-
-              <li>
-                <a class="dropdown-item" href="{{url('pages/account-settings-billing')}}">
-                  <span class="d-flex align-items-center align-middle">
-                    <i class="flex-shrink-0 ti ti-file-dollar me-3 ti-md"></i><span class="flex-grow-1 align-middle">Billing</span>
-                    <span class="flex-shrink-0 badge bg-danger d-flex align-items-center justify-content-center">4</span>
-                  </span>
-                </a>
-              </li>
-
-              <li>
-                <div class="dropdown-divider my-1 mx-n2"></div>
-              </li>
               @if (Auth::check())
                 <li>
+                  <a class="dropdown-item" href="{{ Auth::user()->homeRoute() }}">
+                    <i class="ti ti-smart-home me-3 ti-md"></i><span class="align-middle">Dashboard</span>
+                  </a>
+                </li>
+                @if (Auth::user()->hasRole('Customer'))
+                  <li>
+                    <a class="dropdown-item" href="{{ route('customer.orders.index') }}">
+                      <i class="ti ti-shopping-bag me-3 ti-md"></i><span class="align-middle">My Orders</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{{ url('/customer/addresses') }}">
+                      <i class="ti ti-map-pin me-3 ti-md"></i><span class="align-middle">Saved Addresses</span>
+                    </a>
+                  </li>
+                @endif
+                @if (Auth::user()->hasRole('Vendor'))
+                  <li>
+                    <a class="dropdown-item" href="{{ route('vendor.products.index') }}">
+                      <i class="ti ti-package me-3 ti-md"></i><span class="align-middle">My Products</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{{ route('vendor.orders.index') }}">
+                      <i class="ti ti-receipt me-3 ti-md"></i><span class="align-middle">Orders</span>
+                    </a>
+                  </li>
+                @endif
+                @if (Auth::user()->hasRole('Super Admin'))
+                  <li>
+                    <a class="dropdown-item" href="{{ route('admin.vendors.list') }}">
+                      <i class="ti ti-building-store me-3 ti-md"></i><span class="align-middle">Vendors</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{{ route('admin.reports.index') }}">
+                      <i class="ti ti-chart-bar me-3 ti-md"></i><span class="align-middle">Reports</span>
+                    </a>
+                  </li>
+                @endif
+                <li>
+                  <div class="dropdown-divider my-1 mx-n2"></div>
+                </li>
+                <li>
                   <div class="d-grid px-2 pt-2 pb-1">
-                    <a class="btn btn-sm btn-danger d-flex" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <a class="btn btn-sm btn-danger d-flex justify-content-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                       <small class="align-middle">Logout</small>
                       <i class="ti ti-logout ms-2 ti-14px"></i>
                     </a>
@@ -462,8 +504,21 @@ $navbarDetached = ($navbarDetached ?? '');
                 </form>
               @else
                 <li>
+                  <a class="dropdown-item" href="{{ route('login') }}">
+                    <i class="ti ti-login me-3 ti-md"></i><span class="align-middle">Login</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ route('register') }}">
+                    <i class="ti ti-user-plus me-3 ti-md"></i><span class="align-middle">Register</span>
+                  </a>
+                </li>
+                <li>
+                  <div class="dropdown-divider my-1 mx-n2"></div>
+                </li>
+                <li>
                   <div class="d-grid px-2 pt-2 pb-1">
-                    <a class="btn btn-sm btn-danger d-flex" href="{{ Route::has('login') ? route('login') : url('auth/login-basic') }}">
+                    <a class="btn btn-sm btn-primary d-flex justify-content-center" href="{{ route('login') }}">
                       <small class="align-middle">Login</small>
                       <i class="ti ti-login ms-2 ti-14px"></i>
                     </a>

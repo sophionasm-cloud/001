@@ -55,7 +55,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Wishlist::class);
     }
-        public function hasRole(string $name): bool
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function hasRole(string $name): bool
     {
         return $this->role?->name === $name;
     }

@@ -208,7 +208,7 @@
           <span>Order History</span>
           <i class="ti ti-chevron-right ms-auto text-muted"></i>
         </a>
-        <a href="{{ url('/addresses') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+        <a href="{{ route('customer.addresses.index') }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
           <img src="{{ Vite::asset('resources/images/svg/address.svg') }}" style="width:20px;" alt="" />
           <span>Saved Addresses</span>
           <i class="ti ti-chevron-right ms-auto text-muted"></i>

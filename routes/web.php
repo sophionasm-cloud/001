@@ -34,6 +34,7 @@ Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, '
 Route::middleware('auth')->group(function () {
     Route::redirect('/home', '/customer/dashboard');
     Route::redirect('/orders', '/customer/orders');
+    Route::redirect('/addresses', '/customer/addresses');
     Route::redirect('/profile', '/customer/dashboard')->name('profile.show');
 });
 Route::redirect('/wishlist', '/products');

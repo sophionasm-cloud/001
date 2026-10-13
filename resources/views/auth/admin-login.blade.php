@@ -13,12 +13,13 @@
     {{-- Left panel with illustration --}}
     <div class="d-none d-lg-flex col-lg-7 p-0">
       <div class="auth-cover-bg auth-cover-bg-color d-flex justify-content-center align-items-center">
-        <img src="{{ Vite::asset('resources/images/pages/auth-v2-login-illustration-light.png') }}"
+        <img src="{{ asset('assets/img/pages/auth-v2-login-illustration-light.png') }}"
              alt="Admin Login Cover"
              class="img-fluid my-auto"
              style="max-width: 75%"
              data-app-light-img="pages/auth-v2-login-illustration-light.png"
-             data-app-dark-img="pages/auth-v2-login-illustration-dark.png" />
+             data-app-dark-img="pages/auth-v2-login-illustration-dark.png"
+             onerror="this.src='{{ asset('assets/img/illustrations/auth-login-illustration-light.png') }}'" />
       </div>
     </div>
 

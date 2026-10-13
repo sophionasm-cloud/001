@@ -12,6 +12,7 @@
 @vite([
   'resources/assets/vendor/libs/apex-charts/apexcharts.js'
 ])
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 @endsection
 
 @section('content')
@@ -38,10 +39,10 @@
 <div class="row g-4 mb-4">
   @php
     $kpis = [
-      ['label' => 'Total Revenue',   'value' => '$' . number_format($stats['total_revenue']   ?? 128450, 2), 'icon' => 'ti-currency-dollar', 'color' => 'primary',   'change' => '+23.5%', 'up' => true],
-      ['label' => 'Total Orders',    'value' => number_format($stats['total_orders']    ?? 5623),            'icon' => 'ti-shopping-bag',     'color' => 'success',   'change' => '+8.2%',  'up' => true],
-      ['label' => 'Active Vendors',  'value' => number_format($stats['active_vendors']  ?? 84),              'icon' => 'ti-store',            'color' => 'warning',   'change' => '+4.1%',  'up' => true],
-      ['label' => 'Avg. Order Value','value' => '$' . number_format($stats['avg_order'] ?? 68.4, 2),        'icon' => 'ti-chart-bar',        'color' => 'info',      'change' => '-1.2%',  'up' => false],
+      ['label' => 'Total Revenue',   'value' => '$' . number_format($stats['total_revenue'] ?? 0, 2), 'icon' => 'ti-currency-dollar', 'color' => 'primary',   'change' => '+23.5%', 'up' => true],
+      ['label' => 'Total Orders',    'value' => number_format($stats['total_orders'] ?? 0),           'icon' => 'ti-shopping-bag',     'color' => 'success',   'change' => '+8.2%',  'up' => true],
+      ['label' => 'Active Vendors',  'value' => number_format($stats['active_vendors'] ?? 0),         'icon' => 'ti-store',            'color' => 'warning',   'change' => '+4.1%',  'up' => true],
+      ['label' => 'Avg. Order Value','value' => '$' . number_format($stats['avg_order'] ?? 0, 2),    'icon' => 'ti-chart-bar',        'color' => 'info',      'change' => '-1.2%',  'up' => false],
     ];
   @endphp
   @foreach($kpis as $kpi)
@@ -93,16 +94,7 @@
       <div class="card-body">
         <div id="category-chart" style="min-height:200px;"></div>
         <div class="mt-3">
-          @php
-            $cats = [
-              ['name' => 'Electronics', 'pct' => 35, 'color' => 'primary'],
-              ['name' => 'Fashion',     'pct' => 25, 'color' => 'success'],
-              ['name' => 'Home & Garden','pct' => 20, 'color' => 'warning'],
-              ['name' => 'Sports',      'pct' => 12, 'color' => 'info'],
-              ['name' => 'Other',       'pct' => 8,  'color' => 'secondary'],
-            ];
-          @endphp
-          @foreach($cats as $cat)
+          @forelse($catList ?? [] as $cat)
           <div class="d-flex align-items-center justify-content-between mb-2">
             <div class="d-flex align-items-center gap-2">
               <div style="width:10px;height:10px;border-radius:2px;background:var(--bs-{{ $cat['color'] }})"></div>
@@ -110,7 +102,9 @@
             </div>
             <small class="fw-semibold">{{ $cat['pct'] }}%</small>
           </div>
-          @endforeach
+          @empty
+          <p class="text-muted small mb-0">No categories found.</p>
+          @endforelse
         </div>
       </div>
     </div>
@@ -131,51 +125,23 @@
         @php $vi = ($loop->index % 14) + 1; $rank = $loop->index + 1; @endphp
         <div class="d-flex align-items-center gap-3 p-3 {{ !$loop->last ? 'border-bottom' : '' }}">
           <span class="fw-bold text-muted" style="width:24px;">{{ $rank }}.</span>
-          <img src="{{ Vite::asset('resources/images/avatars/avatar-' . $vi . '.png') }}"
-               onerror="this.src='{{ Vite::asset('resources/images/misc/misc-1.png') }}'"
+          <img src="{{ asset('assets/img/avatars/' . $vi . '.png') }}"
+               onerror="this.src='{{ asset('assets/img/avatars/1.png') }}'"
                alt="{{ $vendor->name }}"
                style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
           <div class="flex-grow-1">
             <div class="fw-semibold small">{{ $vendor->name }}</div>
             <div class="progress mt-1" style="height:4px;width:150px;">
-              <div class="progress-bar bg-primary" style="width:{{ min(100, $vendor->sales_percent ?? rand(40,90)) }}%"></div>
+              <div class="progress-bar bg-primary" style="width:{{ min(100, $vendor->sales_percent ?? 50) }}%"></div>
             </div>
           </div>
           <div class="text-end">
-            <div class="fw-bold small text-primary">${{ number_format($vendor->total_revenue ?? 0) }}</div>
+            <div class="fw-bold small text-primary">${{ number_format($vendor->total_revenue ?? 0, 2) }}</div>
             <div class="text-muted" style="font-size:.7rem">{{ $vendor->orders_count ?? 0 }} orders</div>
           </div>
         </div>
         @empty
-        {{-- Demo data when no vendors --}}
-        @php
-          $demoVendors = [
-            ['name'=>'TechStore Pro','revenue'=>42300,'orders'=>312,'ai'=>1],
-            ['name'=>'FashionHub','revenue'=>31800,'orders'=>248,'ai'=>2],
-            ['name'=>'HomeDecor Plus','revenue'=>28900,'orders'=>201,'ai'=>3],
-            ['name'=>'SportsWorld','revenue'=>19500,'orders'=>176,'ai'=>4],
-            ['name'=>'GadgetZone','revenue'=>15200,'orders'=>143,'ai'=>5],
-          ];
-        @endphp
-        @foreach($demoVendors as $idx => $dv)
-        <div class="d-flex align-items-center gap-3 p-3 {{ $idx < count($demoVendors)-1 ? 'border-bottom' : '' }}">
-          <span class="fw-bold text-muted" style="width:24px;">{{ $idx+1 }}.</span>
-          <img src="{{ Vite::asset('resources/images/avatars/avatar-' . $dv['ai'] . '.png') }}"
-               onerror="this.src='{{ Vite::asset('resources/images/misc/misc-1.png') }}'"
-               alt="{{ $dv['name'] }}"
-               style="width:40px;height:40px;border-radius:50%;object-fit:cover;" />
-          <div class="flex-grow-1">
-            <div class="fw-semibold small">{{ $dv['name'] }}</div>
-            <div class="progress mt-1" style="height:4px;width:150px;">
-              <div class="progress-bar bg-primary" style="width:{{ round($dv['revenue']/423) }}%"></div>
-            </div>
-          </div>
-          <div class="text-end">
-            <div class="fw-bold small text-primary">${{ number_format($dv['revenue']) }}</div>
-            <div class="text-muted" style="font-size:.7rem">{{ $dv['orders'] }} orders</div>
-          </div>
-        </div>
-        @endforeach
+        <div class="p-3 text-muted small">No active vendors found.</div>
         @endforelse
       </div>
     </div>
@@ -188,17 +154,7 @@
         <h6 class="fw-bold mb-0">Recent Activity</h6>
       </div>
       <div class="card-body">
-        @php
-          $activities = [
-            ['icon' => 'ti-shopping-bag', 'color' => 'success', 'text' => 'New order #5632 placed by John Doe', 'time' => '2 min ago'],
-            ['icon' => 'ti-user-plus',    'color' => 'primary', 'text' => 'New vendor "TechMart" registered',  'time' => '15 min ago'],
-            ['icon' => 'ti-credit-card',  'color' => 'info',    'text' => 'Payment of $248 received',          'time' => '1 hr ago'],
-            ['icon' => 'ti-star',         'color' => 'warning', 'text' => 'New 5-star review on iPhone 14',   'time' => '3 hrs ago'],
-            ['icon' => 'ti-alert-circle', 'color' => 'danger',  'text' => 'Low stock alert: Running Shoes',   'time' => '5 hrs ago'],
-            ['icon' => 'ti-check',        'color' => 'success', 'text' => 'Vendor "FashionHub" approved',     'time' => '1 day ago'],
-          ];
-        @endphp
-        @foreach($activities as $activity)
+        @forelse($activities ?? [] as $activity)
         <div class="d-flex align-items-start gap-3 mb-3 {{ !$loop->last ? 'pb-3 border-bottom' : '' }}">
           <div class="avatar avatar-sm bg-label-{{ $activity['color'] }} rounded-circle flex-shrink-0">
             <i class="ti {{ $activity['icon'] }} text-{{ $activity['color'] }} ti-sm"></i>
@@ -208,7 +164,9 @@
             <div class="text-muted" style="font-size:.7rem">{{ $activity['time'] }}</div>
           </div>
         </div>
-        @endforeach
+        @empty
+        <p class="text-muted small mb-0">No recent activity recorded.</p>
+        @endforelse
       </div>
     </div>
   </div>
@@ -219,36 +177,62 @@
 
 @section('page-script')
 <script>
-// Revenue Chart
-const revenueChart = new ApexCharts(document.getElementById('revenue-chart'), {
-  chart: { type: 'area', height: 280, toolbar: { show: false }, sparkline: { enabled: false } },
-  series: [
-    { name: 'Revenue ($)', data: [12000, 18000, 14000, 22000, 19000, 28000, 24000, 32000, 29000, 38000, 35000, 42000] },
-    { name: 'Orders',      data: [180, 240, 200, 310, 270, 380, 340, 450, 410, 520, 480, 580] }
-  ],
-  xaxis: {
-    categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-    axisBorder: { show: false }, axisTicks: { show: false }
-  },
-  colors: ['#696cff', '#71dd37'],
-  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05 } },
-  stroke: { curve: 'smooth', width: 2 },
-  dataLabels: { enabled: false },
-  legend: { show: false },
-  grid: { borderColor: '#f0f0f0' }
-});
-revenueChart.render();
+function renderAdminReportsCharts() {
+  if (typeof ApexCharts === 'undefined') {
+    return setTimeout(renderAdminReportsCharts, 100);
+  }
 
-// Category Chart
-const categoryChart = new ApexCharts(document.getElementById('category-chart'), {
-  chart: { type: 'donut', height: 200 },
-  series: [35, 25, 20, 12, 8],
-  labels: ['Electronics', 'Fashion', 'Home & Garden', 'Sports', 'Other'],
-  colors: ['#696cff', '#71dd37', '#ffab00', '#03c3ec', '#8592a3'],
-  legend: { show: false },
-  dataLabels: { enabled: false },
-  plotOptions: { pie: { donut: { size: '70%' } } }
-});
-categoryChart.render();
+  const revenueEl = document.getElementById('revenue-chart');
+  if (revenueEl) {
+    const revenueMonths = {!! json_encode($months ?? []) !!};
+    const revenueValues = {!! json_encode($revenueData ?? []) !!};
+    const ordersValues = {!! json_encode($ordersData ?? []) !!};
+
+    const revenueChart = new ApexCharts(revenueEl, {
+      chart: { type: 'area', height: 280, toolbar: { show: false }, sparkline: { enabled: false } },
+      series: [
+        { name: 'Revenue ($)', data: revenueValues },
+        { name: 'Orders',      data: ordersValues }
+      ],
+      xaxis: {
+        categories: revenueMonths,
+        axisBorder: { show: false }, axisTicks: { show: false }
+      },
+      colors: ['#696cff', '#71dd37'],
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05 } },
+      stroke: { curve: 'smooth', width: 2 },
+      dataLabels: { enabled: false },
+      legend: { show: false },
+      grid: { borderColor: '#f0f0f0' }
+    });
+    revenueChart.render();
+  }
+
+  const catEl = document.getElementById('category-chart');
+  if (catEl) {
+    let catLabels = {!! json_encode($catLabels ?? []) !!};
+    let catSeries = {!! json_encode($catSeries ?? []) !!};
+    if (catSeries.length === 0 || catSeries.every(v => v === 0)) {
+      catLabels = ['Catalog Data'];
+      catSeries = [1];
+    }
+    const categoryChart = new ApexCharts(catEl, {
+      chart: { type: 'donut', height: 200 },
+      series: catSeries,
+      labels: catLabels,
+      colors: ['#696cff', '#71dd37', '#ffab00', '#03c3ec', '#8592a3'],
+      legend: { show: false },
+      dataLabels: { enabled: false },
+      plotOptions: { pie: { donut: { size: '70%' } } }
+    });
+    categoryChart.render();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderAdminReportsCharts);
+} else {
+  renderAdminReportsCharts();
+}
 </script>
 @endsection

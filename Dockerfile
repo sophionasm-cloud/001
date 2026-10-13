@@ -53,9 +53,10 @@ RUN composer dump-autoload --optimize --no-dev
 # Build Vite frontend assets
 RUN npm run build
 
-# Copy resources/images to public for static asset fallback
-RUN mkdir -p /var/www/html/public/resources \
-    && cp -r /var/www/html/resources/images /var/www/html/public/resources/ 2>/dev/null || true
+# Copy resources/images to public for static asset fallback and theme compatibility
+RUN mkdir -p /var/www/html/public/resources /var/www/html/public/assets/img/pages \
+    && cp -r /var/www/html/resources/images /var/www/html/public/resources/ 2>/dev/null || true \
+    && cp -r /var/www/html/resources/images/pages/* /var/www/html/public/assets/img/pages/ 2>/dev/null || true
 
 # Setup SQLite database and storage directories
 RUN mkdir -p /var/www/html/database \
