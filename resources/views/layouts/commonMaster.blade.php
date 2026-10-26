@@ -41,6 +41,9 @@ $contentLayout = (isset($container) ? (($container === 'container-xxl') ? "layou
   @yield('layoutContent')
   <!--/ Layout Content -->
 
+  <!-- Floating AI Support Agent -->
+  @include('_partials._ai_support_widget')
+
   
 
   <!-- Include Scripts -->

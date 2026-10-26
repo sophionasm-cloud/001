@@ -30,3 +30,5 @@ services:
         value: stderr
       - key: LOG_LEVEL
         value: debug
+      - key: GEMINI_MODEL
+        value: "gemini-3.5-flash"

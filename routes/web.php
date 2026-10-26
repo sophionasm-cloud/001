@@ -5,6 +5,13 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\AiSupportController;
+
+// AI Chatbot
+Route::post('/api/ai-chat', [AiSupportController::class, 'chat'])->name('ai.chat');
+Route::get('/api/ai-chat/init', [AiSupportController::class, 'init'])->name('ai.init');
+Route::post('/ai-chat', [AiSupportController::class, 'chat']);
+Route::get('/ai-chat/init', [AiSupportController::class, 'init']);
 
 // Public storefront
 Route::get('/', fn() => view('welcome'))->name('home');
