@@ -44,7 +44,7 @@
         </div>
         @endif
 
-        <form action="{{ url('/register') }}" method="POST">
+        <form action="{{ url('/register') }}" method="POST" enctype="multipart/form-data">
           @csrf
 
           {{-- Account type --}}
@@ -90,6 +90,31 @@
             <label for="store_name" class="form-label">Store Name</label>
             <input type="text" class="form-control" id="store_name" name="store_name"
                    value="{{ old('store_name') }}" placeholder="Your Store Name" />
+          </div>
+
+          {{-- Profile Picture --}}
+          <div class="mb-3">
+            <label class="form-label">Profile Picture <span class="text-muted">(Optional)</span></label>
+            <div class="d-flex align-items-center gap-3">
+              <div id="avatar-preview-wrap" class="position-relative" style="flex-shrink:0;">
+                <img id="avatar-preview"
+                     src="https://ui-avatars.com/api/?name=&background=7367f0&color=fff&size=80"
+                     alt="Avatar Preview"
+                     class="rounded-circle"
+                     style="width:72px;height:72px;object-fit:cover;border:2px solid #e0e0e0;" />
+              </div>
+              <div class="flex-grow-1">
+                <label for="profile_picture" class="btn btn-outline-secondary btn-sm w-100 mb-1" style="cursor:pointer;">
+                  <i class="ti ti-upload me-1"></i> Upload Photo
+                  <input type="file" id="profile_picture" name="profile_picture"
+                         accept="image/jpeg,image/png,image/gif,image/webp"
+                         class="d-none @error('profile_picture') is-invalid @enderror"
+                         onchange="previewAvatar(this)" />
+                </label>
+                <div class="text-muted" style="font-size:.72rem;">JPG, PNG, GIF or WEBP · Max 2 MB</div>
+                @error('profile_picture')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+              </div>
+            </div>
           </div>
 
           <div class="mb-3">
@@ -161,5 +186,33 @@
   }
   // Initialize
   setType('customer');
+
+  function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      // Validate size client-side (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image is too large. Please choose an image under 2 MB.');
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('avatar-preview').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Update the avatar preview placeholder when name is typed
+  document.getElementById('name').addEventListener('input', function() {
+    const preview = document.getElementById('avatar-preview');
+    const fileInput = document.getElementById('profile_picture');
+    // Only update the placeholder if no file has been chosen yet
+    if (!fileInput.files || !fileInput.files[0]) {
+      const name = encodeURIComponent(this.value || '');
+      preview.src = `https://ui-avatars.com/api/?name=${name}&background=7367f0&color=fff&size=80`;
+    }
+  });
 </script>
 @endsection

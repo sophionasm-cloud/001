@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
@@ -43,22 +44,30 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'         => ['required', 'string', 'max:255'],
-            'email'        => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password'     => ['required', 'string', 'min:8', 'confirmed'],
-            'account_type' => ['sometimes', 'string', 'in:customer,vendor'],
-            'store_name'   => ['sometimes', 'nullable', 'string', 'max:255'],
+            'name'            => ['required', 'string', 'max:255'],
+            'email'           => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'        => ['required', 'string', 'min:8', 'confirmed'],
+            'account_type'    => ['sometimes', 'string', 'in:customer,vendor'],
+            'store_name'      => ['sometimes', 'nullable', 'string', 'max:255'],
+            'profile_picture' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,gif,webp', 'max:2048'],
         ]);
 
         $isVendor = ($data['account_type'] ?? '') === 'vendor';
         $roleName = $isVendor ? 'Vendor' : 'Customer';
         $roleId   = Role::where('name', $roleName)->value('id') ?? ($isVendor ? 2 : 3);
 
+        // Handle profile picture upload
+        $profilePicturePath = null;
+        if ($request->hasFile('profile_picture') && $request->file('profile_picture')->isValid()) {
+            $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
+
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role_id'  => $roleId,
+            'name'            => $data['name'],
+            'email'           => $data['email'],
+            'password'        => Hash::make($data['password']),
+            'role_id'         => $roleId,
+            'profile_picture' => $profilePicturePath,
         ]);
 
         if ($isVendor) {

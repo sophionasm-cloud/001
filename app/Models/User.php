@@ -15,6 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'profile_picture',
     ];
 
     protected $hidden = [
@@ -61,6 +62,17 @@ class User extends Authenticatable
         return $this->hasMany(Address::class);
     }
 
+    /**
+     * Get profile picture URL or fallback to generated avatar.
+     */
+    public function avatarUrl(): string
+    {
+        if ($this->profile_picture && file_exists(storage_path('app/public/' . $this->profile_picture))) {
+            return asset('storage/' . $this->profile_picture);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=128';
+    }
+
     public function hasRole(string $name): bool
     {
         return $this->role?->name === $name;
@@ -76,3 +88,5 @@ class User extends Authenticatable
         };
     }
 }
+
+
